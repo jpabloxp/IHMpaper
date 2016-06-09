@@ -1,0 +1,17 @@
+Name;Sex;Age;Length/Orientation;Grasp;Repetition;Position;Overshoot;MovementTime - 2016-06-01T13:16:00.973+02:00
+Alessandro;Male;24;large-vertical;1H;1;D;0;1.909
+Alessandro;Male;24;large-vertical;1H;2;U;0;1.603
+Alessandro;Male;24;large-vertical;1H;3;D;0;1.412
+Alessandro;Male;24;large-vertical;1H;4;U;0;1.495
+Alessandro;Male;24;large-vertical;1H;5;D;0;1.204
+Alessandro;Male;24;large-vertical;1H;6;U;0;1.485
+Alessandro;Male;24;large-vertical;1H;7;D;0;1.415
+Alessandro;Male;24;large-vertical;1H;8;U;0;1.295
+Alessandro;Male;24;large-vertical;1H;9;D;0;0.804
+Alessandro;Male;24;large-vertical;1H;10;U;0;1.206
+Alessandro;Male;24;large-vertical;1H;11;D;0;2.399
+Alessandro;Male;24;large-vertical;1H;12;U;0;3.294
+Alessandro;Male;24;large-vertical;1H;13;D;0;1.298
+Alessandro;Male;24;large-vertical;1H;14;U;0;1.205
+Alessandro;Male;24;large-vertical;1H;15;D;0;1.602
+Alessandro;Male;24;large-vertical;1H;16;U;0;2.212

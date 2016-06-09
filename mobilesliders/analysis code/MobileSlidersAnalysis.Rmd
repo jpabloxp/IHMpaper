@@ -1,0 +1,610 @@
+---
+title: "Comparison of parameters for mobile sliders"
+author: "Juan Rosso, C??line Coutrix"
+date: "April 1, 2016"
+output: html_document
+---
+
+<!-- This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this: -->
+
+# All previous analysis code 
+
+Does not compile
+Needs to be updated and commented
+
+```{r Previous analysis code that needs to be updated and commented}
+setwd("../data/")
+
+# Data --------------------------------------------------------------------
+data <- rbind(read.csv("20140625-091712-Francois-FixedSlider-2cm.csv"),
+              read.csv("20140625-092719-Francois-FixedSlider-4cm.csv"),
+              read.csv("20140625-093134-Francois-FixedSlider-8cm.csv"),
+              read.csv("20140625-094821-Thomas-FixedSlider-4cm.csv"),
+              read.csv("20140625-095233-Thomas-FixedSlider-8cm.csv"),
+              read.csv("20140625-095711-Thomas-FixedSlider-2cm.csv"),
+              read.csv("20140625-101652-Laure-FixedSlider-8cm.csv"),
+              read.csv("20140625-102247-Laure-FixedSlider-2cm.csv"),
+              read.csv("20140625-102715-Laure-FixedSlider-4cm.csv"),
+              read.csv("20140625-104014-Michael-FixedSlider-2cm.csv"),
+              read.csv("20140625-104347-Michael-FixedSlider-4cm.csv"),
+              read.csv("20140625-105010-Michael-FixedSlider-8cm.csv"),
+              read.csv("20140625-131238-Elie-FixedSlider-4cm.csv"),
+              read.csv("20140625-131633-Elie-FixedSlider-8cm.csv"),
+              read.csv("20140625-132010-Elie-FixedSlider-2cm.csv"),
+              read.csv("20140625-153209-Sebastien-FixedSlider-8cm.csv"),
+              read.csv("20140625-153551-Sebastien-FixedSlider-2cm.csv"),
+              read.csv("20140625-153944-Sebastien-FixedSlider-4cm.csv"),
+              read.csv("20140625-160339-Jerome-FixedSlider-2cm.csv"),
+              read.csv("20140625-160926-Jerome-FixedSlider-4cm.csv"),
+              read.csv("20140625-161305-Jerome-FixedSlider-8cm.csv"),
+              read.csv("20140625-162610-Belen-FixedSlider-4cm.csv"),
+              read.csv("20140625-162959-Belen-FixedSlider-8cm.csv"),
+              read.csv("20140625-163330-Belen-FixedSlider-2cm.csv"),
+              read.csv("20140627-094335-Raquel-FixedSlider-8cm.csv"),
+              read.csv("20140627-094704-Raquel-FixedSlider-2cm.csv"),
+              read.csv("20140627-095101-Raquel-FixedSlider-4cm.csv"),
+              read.csv("20140707-111040-Sybille-FixedSlider-4cm.csv"),
+              read.csv("20140707-111535-Sybille-FixedSlider-8cm.csv"),
+              read.csv("20140707-111940-Sybille-FixedSlider-2cm.csv"),
+              read.csv("20140707-130935-Elena-FixedSlider-2cm.csv"),
+              read.csv("20140707-131406-Elena-FixedSlider-4cm.csv"),
+              read.csv("20140707-131719-Elena-FixedSlider-8cm.csv"),
+              read.csv("20140707-151106-Elisabeth-FixedSlider-8cm.csv"),
+              read.csv("20140707-151525-Elisabeth-FixedSlider-2cm.csv"),
+              read.csv("20140707-152001-Elisabeth-FixedSlider-4cm.csv"))
+
+# Participants' demographics -----------------------------------------------
+
+dataDemographics <- data.frame(data$SUBJECT, data$AGE, data$SEX)
+dataDemographics <- unique(dataDemographics)
+mean(dataDemographics$data.AGE)
+median(dataDemographics$data.AGE)
+sd(dataDemographics$data.AGE)
+min(dataDemographics$data.AGE)
+max(dataDemographics$data.AGE)
+
+# Plot Results ------------------------------------------------------------
+
+# keep only lines where target has been validated
+data_tmp <- data[data$TARGET_VALIDATED == "targetValidated",]
+# compute distances
+data_tmp$D[1] <- 0 # column distance D is filled with 0s
+for (i in 2:nrow(data_tmp)){ 
+  data_tmp$D[i] <- abs(data_tmp$TARGET_CURSOR_SCREEN_VALUE[i] - data_tmp$TARGET_CURSOR_SCREEN_VALUE[i-1])
+}
+data_tmp$ID <- log2(data_tmp$D / data_tmp$TARGET_CURSOR_SCREEN_HEIGHT + 1)
+data_tmp$ID <- round(data_tmp$ID)
+data_tmp <- data_tmp[data_tmp$TARGET_INDEX!=42,]
+data_tmp <- data_tmp[data_tmp$TARGET_INDEX!=41,]
+data_tmp <- data_tmp[data_tmp$TARGET_INDEX!=0,]
+data_tmp$POINTING_TIME <- data_tmp$POINTING_TIME/1000
+
+# Error rate -------------------------------------------------------
+# reinject ID in original data frame, based on TARGET_INDEX and BLOCK_INDEX
+data_tmp2 <- subset(data_tmp, select = c(TARGET_INDEX,BLOCK_INDEX, ID))
+data_tmp3 <- unique(data_tmp2)
+data_tmpError <- merge(data, data_tmp3, by = c("TARGET_INDEX", "BLOCK_INDEX"))
+
+# for the error rate, keep lines where selection has been tried
+data_error <- data_tmpError[data_tmpError$TARGET_VALIDATED == "tryNb1",]
+
+# debug
+data_tmp$ID[which(data_tmp$TARGET_INDEX == 40 && data_tmp$BLOCK_INDEX == 0)]
+table(data_error$BLOCK_INDEX)
+table(data_error$TARGET_INDEX)
+table(data_error$ACTUAL_SIZE_SENSOR_VALUE)
+table(data_error$SUBJECT)
+
+# add a column to data_tmp that says if there was an error on the target
+data_tmp2_2 <- subset(data_tmp, select = c("TARGET_INDEX", "BLOCK_INDEX", "ID", "SUBJECT", "ACTUAL_SIZE_SENSOR_VALUE"))
+data_tmp3_2 <- unique(data_tmp2_2)
+# now that data_tmp3_2 contains the ID and all relevant information for adding it to the original data frame,
+# we add the ID corresponding to the target to all lines of data: 
+data_tmpError_2 <- merge(data, data_tmp3_2, by = c("TARGET_INDEX", "BLOCK_INDEX", "ACTUAL_SIZE_SENSOR_VALUE", "SUBJECT"))
+# we keep the lines where an error happend (now we have the ID as additional information): 
+data_error_2 <- data_tmpError_2[data_tmpError_2$TARGET_VALIDATED == "tryNb1",]
+# now we keep all trials in data_tmp even if it had no error, but add the lines of data_error_2 if it had an error:
+data_tmp_3 <- merge(data_tmp, data_error_2, by = c("TARGET_INDEX", "BLOCK_INDEX", "ACTUAL_SIZE_SENSOR_VALUE", "SUBJECT", "ID"), all.x = TRUE)
+# TARGET_VALIDATED.y contains tryNb1 if there was an error on this trial
+data_tmp_3$Error <- data_tmp_3$TARGET_VALIDATED.y != NA
+
+data_tmp_3$Error = ifelse(is.na(data_tmp_3$TARGET_VALIDATED.y), 0, 1)
+table(data_tmp_3$Error)
+dataError4Analysis <- subset(data_tmp_3, select = c("ID", "Error", "ACTUAL_SIZE_SENSOR_VALUE"))
+
+# for having the amount of the error
+data_error$CURSOR_ERROR_CENTER_TO_CENTER_SCREEN_VALUE 
+dataTry <- data[data$TARGET_VALIDATED == "tryNb1",]
+dataTry$CURSOR_ERROR_CENTER_TO_CENTER_SCREEN_VALUE
+mean(dataTry$CURSOR_ERROR_CENTER_TO_CENTER_SCREEN_VALUE)
+
+Error2 <- data_error[data_error$ACTUAL_SIZE_SENSOR_VALUE == 2,]
+Error4 <- data_error[data_error$ACTUAL_SIZE_SENSOR_VALUE == 4,]
+Error8 <- data_error[data_error$ACTUAL_SIZE_SENSOR_VALUE == 8,]
+data2 <- data_tmp[data_tmp$ACTUAL_SIZE_SENSOR_VALUE == 2,]
+data4 <- data_tmp[data_tmp$ACTUAL_SIZE_SENSOR_VALUE == 4,]
+data8 <- data_tmp[data_tmp$ACTUAL_SIZE_SENSOR_VALUE == 8,]
+Size <- factor(c(2, 4, 8))
+ErrorRate <- c(nrow(Error2)/nrow(data2), 
+               nrow(Error4)/nrow(data4),
+               nrow(Error8)/nrow(data8))
+dataError <- data.frame(Size, ErrorRate)
+
+# a faire par sujets
+
+Error_data <- data_error$CURSOR_ERROR_CENTER_TO_CENTER_SCREEN_VALUE
+ID_data <- factor(data_error$ID)
+Size_data <- factor(data_error$ACTUAL_SIZE_SENSOR_VALUE)
+data <- data.frame(Size_data, ID_data, Error_data)
+t<-table(data$Size_data, data$ID_data)
+
+t[1, 1] <- nrow(data[data$Size_data=="2" & data$ID_data=="2",])/240
+t[2, 1] <- nrow(data[data$Size_data=="4" & data$ID_data=="2",])/240
+t[3, 1] <- nrow(data[data$Size_data=="8" & data$ID_data=="2",])/240
+
+t[1, 2] <- nrow(data[data$Size_data=="2" & data$ID_data=="3",])/240
+t[2, 2] <- nrow(data[data$Size_data=="4" & data$ID_data=="3",])/240
+t[3, 2] <- nrow(data[data$Size_data=="8" & data$ID_data=="3",])/240
+
+t[1, 3] <- nrow(data[data$Size_data=="2" & data$ID_data=="4",])/240
+t[2, 3] <- nrow(data[data$Size_data=="4" & data$ID_data=="4",])/240
+t[3, 3] <- nrow(data[data$Size_data=="8" & data$ID_data=="4",])/240
+
+t[1, 4] <- nrow(data[data$Size_data=="2" & data$ID_data=="5",])/240
+t[2, 4] <- nrow(data[data$Size_data=="4" & data$ID_data=="5",])/240
+t[3, 4] <- nrow(data[data$Size_data=="8" & data$ID_data=="5",])/240
+
+barplot(t, beside=TRUE, xlab="Index of Difficulty (easy to difficult)", ylab = "Error rate")
+
+# Normalisation des graphs ------------------------------------------------
+# corriger graph en fonction de target's width to be normalized by slider size
+# corriger graph en fonction de target's distance to be normalized by slider size
+
+data_tmp$NORMALIZED_TARGET_CURSOR_SCREEN_HEIGHT <- data_tmp$TARGET_CURSOR_SCREEN_HEIGHT/data_tmp$ACTUAL_SIZE_SCREEN_VALUE
+data_tmp$NORMALIZED_D <- data_tmp$D/data_tmp$ACTUAL_SIZE_SCREEN_VALUE
+
+# Confidence Intervals ----------------------------------------------------
+
+ics2 = function(var) {
+  nb = length(var)
+  icp = mean(var) + 1.96 * sd(var) / sqrt(nb)
+  icm = mean(var) - 1.96 * sd(var) / sqrt(nb)
+  return(c(icm, icp))
+}
+
+icProp = function(x) {
+  v <- which(x == 1)
+  t <- prop.test(length(v), length(x))
+  return(t$conf.int)
+}
+
+# Display parameters ------------------------------------------------------
+
+library("sciplot", lib.loc="/Library/Frameworks/R.framework/Versions/3.1/Resources/library")
+pdf("/Users/celinecoutrix/Projets/ScalableObject/XP/analysis/Analysis-size-pointing.pdf")
+
+sliderRange <- data_tmp$ACTUAL_SIZE_SENSOR_VALUE*1100/20.
+x_range <- range(data_tmp$ID)
+#y_range_time <- range(data_tmp$POINTING_TIME, na.rm = TRUE)
+y_range_time <- range(0,10)
+y_range_error <- range(data_tmp$CURSOR_ERROR/sliderRange, na.rm=TRUE)
+#y_range_error <- range(0:1)
+#y_range_error <- range(0:1500)
+y_range_size <- range(data_tmp$ACTUAL_SIZE_SENSOR_VALUE, na.rm=TRUE)
+#y_range_size <- range(-1500:1500)
+
+#conditionsColors <- rainbow(3)
+conditionsColors <- grey.colors(3)
+conditions <- c("2cm/96px", "4cm/192px", "8cm/384px")
+difficultyColors <- rev(heat.colors(4))
+widthColors <- rev(terrain.colors(12))
+distanceColors <- c("blue", "red")
+
+# Plots of POINTING Error -------------------------------------------
+barplot(t, beside=TRUE, col=conditionsColors, xlab="Index of Difficulty (easy to difficult)", ylab = "Error rate")
+legend("topleft", conditions, fill = conditionsColors)
+
+res <- bargraph.CI(data_tmp_3$ID, data_tmp_3$Error, group=data_tmp_3$ACTUAL_SIZE_SENSOR_VALUE, ci.fun=ics2, 
+            col=conditionsColors, xlab="Index of Difficulty (easy to difficult)", ylab = "Error rate")
+legend("topleft", conditions, fill = conditionsColors)
+
+res <- bargraph.CI(data_tmp_3$ACTUAL_SIZE_SENSOR_VALUE, data_tmp_3$Error, ci.fun=ics2, 
+                   col=conditionsColors, xlab="Size of slider (cm)", ylab = "Error rate")
+
+
+# boxplot(data_tmp$CURSOR_ERROR/sliderRange ~ data_tmp$ID * data_tmp$ACTUAL_SIZE_SENSOR_VALUE, 
+#      col= difficultyColors, ylim=c(-0.02,0.02), xlab="Index of Difficulty (easy to difficult) * Size (cm)", ylab = "Error (% of slider's range)", main="Pointing error ")
+# 
+# boxplot(data_tmp$CURSOR_ERROR/sliderRange ~ data_tmp$ID, 
+#         notch=TRUE, col= difficultyColors, ylim=y_range_error, xlab="Index of Difficulty (easy to difficult)", ylab = "Error (% of slider's range)", main="Pointing error ")
+# 
+# boxplot(data_tmp$CURSOR_ERROR/sliderRange ~ data_tmp$ACTUAL_SIZE_SENSOR_VALUE, 
+#         notch=TRUE, col= conditionsColors, ylim=y_range_error, xlab="Size (cm)", ylab = "Error (% of slider's range)", main="Pointing error ")
+# 
+# boxplot(data_tmp$CURSOR_ERROR/sliderRange ~ data_tmp$ACTUAL_SIZE_SENSOR_VALUE * data_tmp$ID, 
+#         notch=TRUE, col= conditionsColors, ylim=y_range_error, xlab="Size (cm) * Index of Difficulty (easy to difficult)", ylab = "Error (% of slider's range)", main="Pointing error ")
+# boxplot(data_tmp$CURSOR_ERROR/sliderRange ~ data_tmp$ID * data_tmp$ACTUAL_SIZE_SENSOR_VALUE, 
+#         notch=TRUE, col= difficultyColors, ylim=y_range_error, xlab="Index of Difficulty (easy to difficult) * Size (cm)", ylab = "Error (% of slider's range)", main="Pointing error ")
+# 
+# boxplot(data_tmp$CURSOR_ERROR/sliderRange ~ data_tmp$NORMALIZED_D, 
+#         notch=TRUE, col= distanceColors, ylim=y_range_error, xlab="Distance (% of slider range)", ylab = "Error (% of slider's range)", main="Pointing error ")
+# 
+# boxplot(data_tmp$CURSOR_ERROR/sliderRange ~ data_tmp$NORMALIZED_D * data_tmp$ACTUAL_SIZE_SENSOR_VALUE, 
+#         notch=TRUE, col= distanceColors, ylim=y_range_error, xlab="Distance (% of slider range) * Size (cm)", ylab = "Error (% of slider's range)", main="Pointing error ")
+# 
+# boxplot(data_tmp$CURSOR_ERROR/sliderRange ~ data_tmp$NORMALIZED_TARGET_CURSOR_SCREEN_HEIGHT, 
+#         notch=TRUE, col= widthColors, ylim=y_range_error, xlab="Target's width (% of slider range)", ylab = "Error (% of slider's range)", main="Pointing error ")
+# 
+# boxplot(data_tmp$CURSOR_ERROR/sliderRange ~ data_tmp$NORMALIZED_TARGET_CURSOR_SCREEN_HEIGHT * data_tmp$ACTUAL_SIZE_SENSOR_VALUE, 
+#         notch=TRUE, col= widthColors, ylim=y_range_error, xlab="Target's width (% of slider range) * Size (cm)", ylab = "Error (% of slider's range)", main="Pointing error ")
+
+# Plots of POINTING Time -------------------------------------------
+
+data_tmp <-  read.csv(file="/Users/juanrosso/Documents/Doctorado/graspme/pruebastats.csv",head=TRUE,sep=";")
+data_tmp
+
+x_range <- range(data_tmp$ID)
+#y_range_time <- range(data_tmp$POINTING_TIME, na.rm = TRUE)
+y_range_time <- range(0,10)
+#conditionsColors <- rainbow(3)
+conditionsColors <- grey.colors(3)
+conditions <- c("2cm/96px", "4cm/192px", "8cm/384px")
+difficultyColors <- rev(heat.colors(4))
+
+reg <- lm(data_tmp$POINTING_TIME ~ data_tmp$ID)
+summary(reg)
+boxplot(data_tmp$POINTING_TIME ~ data_tmp$ID, 
+        notch=TRUE, col= difficultyColors, ylim=y_range_time, xlab="Index of Difficulty (easy to difficult)", ylab = "Movement time (s)", main="Movement time")
+abline(reg)
+
+reg <- lm(data_tmp$POINTING_TIME ~ data_tmp$ACTUAL_SIZE_SENSOR_VALUE)
+boxplot(data_tmp$POINTING_TIME ~ data_tmp$ACTUAL_SIZE_SENSOR_VALUE, 
+        notch=TRUE, col= conditionsColors, ylim=y_range_time, xlab="Size (cm)", ylab = "Movement time (s)", main="Movement time")
+abline(reg) 
+
+b <- bargraph.CI(data_tmp$ID, data_tmp$POINTING_TIME, group=data_tmp$ACTUAL_SIZE_SENSOR_VALUE, ci.fun=ics2, 
+            col=conditionsColors, xlab="Index of Difficulty (easy to difficult)", ylab = "Movement time (s)")
+legend("topleft", conditions, fill = conditionsColors)
+
+res <- bargraph.CI(data_tmp$ACTUAL_SIZE_SENSOR_VALUE, data_tmp$POINTING_TIME, ci.fun=ics2, 
+            col=conditionsColors, xlab="Size of slider (cm)", ylab = "Movement time (s)")
+
+boxplot(data_tmp$POINTING_TIME ~ data_tmp$ACTUAL_SIZE_SENSOR_VALUE * data_tmp$ID, 
+        notch=TRUE, col= conditionsColors, ylim=y_range_time, xlab="Size (cm) * Index of Difficulty (easy to difficult)", ylab = "Movement time (s)", main="Movement time")
+boxplot(data_tmp$POINTING_TIME ~ data_tmp$ID * data_tmp$ACTUAL_SIZE_SENSOR_VALUE, 
+        notch=TRUE, col= difficultyColors, ylim=y_range_time, xlab="Index of Difficulty (easy to difficult) * Size (cm)", ylab = "Movement time (s)", main="Movement time")
+
+reg <- lm(data_tmp$POINTING_TIME ~ data_tmp$NORMALIZED_D)
+boxplot(data_tmp$POINTING_TIME ~ data_tmp$NORMALIZED_D, 
+        notch=TRUE, col= distanceColors, ylim=y_range_time, xlab="Distance (% of slider range)", ylab = "Movement time (s)", main="Movement time")
+abline(reg) 
+
+boxplot(data_tmp$POINTING_TIME ~ data_tmp$NORMALIZED_D * data_tmp$ACTUAL_SIZE_SENSOR_VALUE, 
+        notch=TRUE, col= distanceColors, ylim=y_range_time, xlab="Distance (% of slider range) * Size (cm)", ylab = "Movement time (s)", main="Movement time")
+bargraph.CI(data_tmp$NORMALIZED_D, data_tmp$POINTING_TIME, group=data_tmp$ACTUAL_SIZE_SENSOR_VALUE, ci.fun=ics2, 
+            col=conditionsColors, xlab="Distance (% of slider range)", ylab = "Movement time (s)")
+legend("topright", conditions, fill = conditionsColors)
+
+
+reg <- lm(data_tmp$POINTING_TIME ~ data_tmp$NORMALIZED_TARGET_CURSOR_SCREEN_HEIGHT)
+boxplot(data_tmp$POINTING_TIME ~ data_tmp$NORMALIZED_TARGET_CURSOR_SCREEN_HEIGHT, 
+        notch=TRUE, col= widthColors, ylim=y_range_time, xlab="Target's width (% of slider range)", ylab = "Movement time (s)", main="Movement time")
+abline(reg) 
+
+boxplot(data_tmp$POINTING_TIME ~ data_tmp$NORMALIZED_TARGET_CURSOR_SCREEN_HEIGHT * data_tmp$ACTUAL_SIZE_SENSOR_VALUE, 
+        notch=TRUE, col= widthColors, ylim=y_range_time, xlab="Target's width (% of slider range) * Size (cm)", ylab = "Movement time (s)", main="Movement time")
+
+bargraph.CI(data_tmp$NORMALIZED_TARGET_CURSOR_SCREEN_HEIGHT, data_tmp$POINTING_TIME, group=data_tmp$ACTUAL_SIZE_SENSOR_VALUE, ci.fun=ics2, 
+            col=conditionsColors, xlab="Target's width (% of slider range)", ylab = "Movement time (s)")
+legend("topright", conditions, fill = conditionsColors)
+
+dev.off()
+
+# Analysis with geometric means as asked by reviewer ----------------------
+
+data_tmp$POINTING_TIME_LOG <- log10(data_tmp$POINTING_TIME)
+hist(data_tmp$POINTING_TIME)
+hist(data_tmp$POINTING_TIME_LOG)
+
+geomMean <- function(var) {
+  return(10^mean(log10(var)))
+}
+CIGeom = function(var) {
+  nb = length(var)
+  icp = geomMean(var) + 1.96 * sd(var) / sqrt(nb)
+  icm = geomMean(var) - 1.96 * sd(var) / sqrt(nb)
+  return(c(icm, icp))
+}
+bargraph.CI(data_tmp$ID, data_tmp$POINTING_TIME, group=data_tmp$ACTUAL_SIZE_SENSOR_VALUE, fun=geomMean, ci.fun=CIGeom, 
+            col=conditionsColors, xlab="Index of Difficulty (easy to difficult)", ylab = "Movement time (s)")
+legend("topleft", conditions, fill = conditionsColors)
+
+
+# Fitts law analysis as asked by reviewer ------------------------------------------------------
+# same procedure as in Chapuis/Dragicevic TOCHI paper
+
+# We use the movement time until the first click
+data_tmp2_2 <- subset(data_tmp, select = c("TARGET_INDEX", "BLOCK_INDEX", "ID", "SUBJECT", "ACTUAL_SIZE_SENSOR_VALUE"))
+data_tmp3_2 <- unique(data_tmp2_2)
+# now that data_tmp3_2 contains the ID and all relevant information for adding it to the original data frame,
+# we add the ID corresponding to the target to all lines of the original data: 
+data_tmpError_2 <- merge(data, data_tmp3_2, by = c("TARGET_INDEX", "BLOCK_INDEX", "ACTUAL_SIZE_SENSOR_VALUE", "SUBJECT"))
+# we keep the lines where the first error or no error happend (now we have the ID as additional information): 
+data_error_2 <- data_tmpError_2[(data_tmpError_2$TARGET_VALIDATED == "targetValidated") | (data_tmpError_2$TARGET_VALIDATED == "tryNb1"),]
+# now, for each combination of "TARGET_INDEX", "BLOCK_INDEX", "ACTUAL_SIZE_SENSOR_VALUE", "SUBJECT", 
+# we need to keep the shortest pointing time
+# if there are two
+
+nrow(unique(subset(data_error_2, select = c("TARGET_INDEX", "BLOCK_INDEX", "SUBJECT", "ACTUAL_SIZE_SENSOR_VALUE"))))
+library(plyr)
+dataFirstTry <- unique(ddply(data_error_2, 
+             .(TARGET_INDEX, BLOCK_INDEX, SUBJECT, ID, ACTUAL_SIZE_SENSOR_VALUE), 
+             function(x) data.frame(TARGET_INDEX=x[,"TARGET_INDEX"], 
+                                    BLOCK_INDEX=x[,"BLOCK_INDEX"], 
+                                    SUBJECT=x[,"SUBJECT"], 
+                                    ID=x[,"ID"], 
+                                    ACTUAL_SIZE_SENSOR_VALUE=x[,"ACTUAL_SIZE_SENSOR_VALUE"],
+                                    POINTING_TIME=min(x$POINTING_TIME))))
+g <- bargraph.CI(dataFirstTry$ID, dataFirstTry$POINTING_TIME/1000, group=dataFirstTry$ACTUAL_SIZE_SENSOR_VALUE, fun=geomMean, ci.fun=CIGeom, 
+            col=conditionsColors, xlab="Index of Difficulty (easy to difficult)", ylab = "Geometric mean movement time (s) until first try")
+legend("topleft", conditions, fill = conditionsColors)
+
+Size <- c(2, 2, 2, 2, 4, 4, 4, 4, 8, 8, 8, 8)
+ID <- c(2, 3, 4, 5, 2, 3, 4, 5, 2, 3, 4, 5)
+Time <- c(g$vals[1,1], g$vals[1,2], g$vals[1,3], g$vals[1,4], 
+          g$vals[2,1], g$vals[2,2], g$vals[2,3], g$vals[2,4], 
+          g$vals[3,1], g$vals[3,2], g$vals[3,3], g$vals[3,4])
+d <- data.frame(Size, ID, Time)
+reg <- lm(d$Time ~ d$ID)
+summary(reg)
+dS <- d[which(d$Size == 2),]
+regS <- lm(dS$Time ~ dS$ID)
+summary(regS)
+dM <- d[which(d$Size == 4),]
+regM <- lm(dM$Time ~ dM$ID)
+summary(regM)
+dL <- d[which(d$Size == 8),]
+regL <- lm(dL$Time ~ dL$ID)
+summary(regL)
+
+regAll <- lm(d$Time ~ d$ID)
+summary(regAll)
+
+plot(ID, Time)
+abline(regS, col=c("red"))
+abline(regM, col=c("green"))
+abline(regL, col=c("blue"))
+
+# confidence intervals for these regression
+newx <- seq(2, 5)
+prdS <- predict(regS, newdata=data.frame(newx), interval = c("confidence"), level = 0.95, type="response")
+lines(newx, prdS[,2], col=c("red"), lty=2)
+lines(newx, prdS[,3], col=c("red"), lty=2)
+
+prdM <- predict(regM, newdata=data.frame(newx), interval = c("confidence"), level = 0.95, type="response")
+lines(newx, prdM[,2], col=c("green"), lty=2)
+lines(newx, prdM[,3], col=c("green"), lty=2)
+
+prdL <- predict(regL, newdata=data.frame(newx), interval = c("confidence"), level = 0.95, type="response")
+lines(newx, prdL[,2], col=c("blue"), lty=2)
+lines(newx, prdL[,3], col=c("blue"), lty=2)
+
+
+
+
+# with all data => leads to very low adjusted r2
+reg <- lm(data_tmp$POINTING_TIME ~ data_tmp$ID)
+summary(reg)
+dataS <- data_tmp[which(data_tmp$ACTUAL_SIZE_SENSOR_VALUE == 2),]
+regS <- lm(dataS$POINTING_TIME ~ dataS$ID)
+summary(regS)
+dataM <- data_tmp[which(data_tmp$ACTUAL_SIZE_SENSOR_VALUE == 4),]
+regM <- lm(dataM$POINTING_TIME ~ dataM$ID)
+summary(regM)
+dataL <- data_tmp[which(data_tmp$ACTUAL_SIZE_SENSOR_VALUE == 8),]
+regL <- lm(dataL$POINTING_TIME ~ dataL$ID)
+summary(regL)
+
+# Two-way repeated-measure ANOVA (for balanced data with car package) ----------------------------------
+# from http://yatani.jp/HCIstats/ANOVA
+
+Time_data <- data_tmp$POINTING_TIME
+Error_data <- data_tmp$CURSOR_ERROR/sliderRange
+ID_data <- factor(data_tmp$ID)
+Size_data <- factor(data_tmp$ACTUAL_SIZE_SENSOR_VALUE)
+Subject_data <- factor(data_tmp$SUBJECT)
+data <- data.frame(Size_data, ID_data, Time_data)
+dataT <- with(data, cbind(Time_data[Size_data=="2"&ID_data=="2"],
+                          Time_data[Size_data=="2"&ID_data=="3"],
+                          Time_data[Size_data=="2"&ID_data=="4"],
+                          Time_data[Size_data=="2"&ID_data=="5"],
+                          Time_data[Size_data=="4"&ID_data=="2"],
+                          Time_data[Size_data=="4"&ID_data=="3"],
+                          Time_data[Size_data=="4"&ID_data=="4"],
+                          Time_data[Size_data=="4"&ID_data=="5"],
+                          Time_data[Size_data=="8"&ID_data=="2"],
+                          Time_data[Size_data=="8"&ID_data=="3"],
+                          Time_data[Size_data=="8"&ID_data=="4"],
+                          Time_data[Size_data=="8"&ID_data=="5"]))
+
+# Check that all factors have the same amount of sample 
+length(Time_data[Size_data=="2"])
+length(Time_data[Size_data=="4"])
+length(Time_data[Size_data=="8"])
+length(Time_data[ID_data=="2"])
+length(Time_data[ID_data=="3"])
+length(Time_data[ID_data=="4"])
+length(Time_data[ID_data=="5"])
+length(Time_data[Size_data=="2"&ID_data=="2"])
+length(Time_data[Size_data=="2"&ID_data=="3"])
+length(Time_data[Size_data=="2"&ID_data=="4"])
+length(Time_data[Size_data=="2"&ID_data=="5"])
+length(Time_data[Size_data=="4"&ID_data=="2"])
+length(Time_data[Size_data=="4"&ID_data=="3"])
+length(Time_data[Size_data=="4"&ID_data=="4"])
+length(Time_data[Size_data=="4"&ID_data=="5"])
+length(Time_data[Size_data=="8"&ID_data=="2"])
+length(Time_data[Size_data=="8"&ID_data=="3"])
+length(Time_data[Size_data=="8"&ID_data=="4"])
+length(Time_data[Size_data=="8"&ID_data=="5"])
+
+Size <- factor(c(2, 2, 2, 2,
+                 4, 4, 4, 4, 
+                 8, 8, 8, 8))
+ID <- factor(c(2, 3, 4, 5, 
+               2, 3, 4, 5, 
+               2, 3, 4, 5))
+factor <- data.frame(Size, ID)
+
+library(car)
+leveneTest(Time_data ~ ID_data * Size_data)
+
+options(contrasts=c("contr.sum", "contr.poly"))
+model <- lm(dataT ~ 1)
+aov <- Anova(model, idata=factor, idesign=~Size*ID, type="III")
+summary(aov, multivariate=FALSE)
+
+# if levene test reveals that anova is not applicable => friedman test as repeated-measure
+data <- data.frame(Time_data, Size_data)
+data2 <- cbind(data[data$Size_data==2,]$Time_data, data[data$Size_data==4,]$Time_data, data[data$Size_data==8,]$Time_data)
+friedman.test(data2)
+
+data <- data.frame(Time_data, ID_data)
+data2 <- cbind(data[data$ID_data==2,]$Time_data, data[data$ID_data==3,]$Time_data, data[data$ID_data==4,]$Time_data, data[data$ID_data==5,]$Time_data)
+friedman.test(data2)
+
+# Pairewise tests
+pairwise.wilcox.test(Time_data, ID_data, p.adj="bonferroni", exact=F, paired=T)
+pairwise.wilcox.test(Time_data, Size_data, p.adj="bonferroni", exact=F, paired=T)
+
+# TODO effect size
+library(coin)
+wilcoxsign_test(ID_data ~ Time_data, distribution="exact")
+wilcoxsign_test(Size_data ~ Time_data, distribution="exact")
+
+# Crossed impact of factors
+data <- data.frame(Size_data, ID_data, Time_data)
+data2 <- data[which(data$ID_data == 2),]
+pairwise.wilcox.test(data2$Time_data, data2$Size_data, p.adj="bonferroni", exact=F, paired=T)
+data3 <- data[which(data$ID_data == 3),]
+pairwise.wilcox.test(data3$Time_data, data3$Size_data, p.adj="bonferroni", exact=F, paired=T)
+data4 <- data[which(data$ID_data == 4),]
+pairwise.wilcox.test(data4$Time_data, data4$Size_data, p.adj="bonferroni", exact=F, paired=T)
+data5 <- data[which(data$ID_data == 5),]
+pairwise.wilcox.test(data5$Time_data, data5$Size_data, p.adj="bonferroni", exact=F, paired=T)
+
+data2 <- data[which(data$Size_data == 2),]
+pairwise.wilcox.test(data2$Time_data, data2$ID_data, p.adj="bonferroni", exact=F, paired=T)
+data4 <- data[which(data$Size_data == 4),]
+pairwise.wilcox.test(data4$Time_data, data4$ID_data, p.adj="bonferroni", exact=F, paired=T)
+data8 <- data[which(data$Size_data == 8),]
+pairwise.wilcox.test(data8$Time_data, data8$ID_data, p.adj="bonferroni", exact=F, paired=T)
+
+
+# Test of the effect of W and D --------------------------------------------------
+
+table(data_tmp$NORMALIZED_TARGET_CURSOR_SCREEN_HEIGHT)
+table(data_tmp$NORMALIZED_D)
+table(data_tmp$NORMALIZED_TARGET_CURSOR_SCREEN_HEIGHT, data_tmp$NORMALIZED_D)
+table(data_tmp$ACTUAL_SIZE_SENSOR_VALUE)
+
+with(data_tmp,
+     {interaction.plot(ACTUAL_SIZE_SENSOR_VALUE, NORMALIZED_TARGET_CURSOR_SCREEN_HEIGHT, POINTING_TIME, ylim=range(0,4))
+     interaction.plot(ACTUAL_SIZE_SENSOR_VALUE, NORMALIZED_D, POINTING_TIME, ylim=range(0,4))
+     })
+
+# on ne garde que les 1, 2 4 px of experiment 1 
+# and a unique D (30px for smallest scale = around the dart-off distance of experiment 2) 
+# in order to relate the results
+dataComparisonXP <- data_tmp[which(data_tmp$NORMALIZED_D == 0.3125),]
+table(dataComparisonXP$NORMALIZED_TARGET_CURSOR_SCREEN_HEIGHT)
+table(dataComparisonXP$NORMALIZED_TARGET_CURSOR_SCREEN_HEIGHT, dataComparisonXP$NORMALIZED_D)
+dataComparisonXP <- dataComparisonXP[which(dataComparisonXP$NORMALIZED_TARGET_CURSOR_SCREEN_HEIGHT < 0.1),]
+table(dataComparisonXP$NORMALIZED_TARGET_CURSOR_SCREEN_HEIGHT)
+
+r <- bargraph.CI(dataComparisonXP$ID, dataComparisonXP$POINTING_TIME, group=dataComparisonXP$ACTUAL_SIZE_SENSOR_VALUE, ci.fun=ics2, 
+            col=conditionsColors, xlab="Index of Difficulty (easy to difficult)", ylab = "Movement time (s)")
+legend("topleft", conditions, fill = conditionsColors)
+r
+
+# Error rate analysis -----------------------------------------------------
+
+names(dataError4Analysis)[3] <- "Size"
+
+g <- bargraph.CI(dataError4Analysis$ID, dataError4Analysis$Error, group=dataError4Analysis$Size, ci.fun=icProp, ylim=range(0,0.5), col=conditionsColors, xlab="Index of Difficulty (easy to difficult)", ylab = "Error rate")
+legend("topleft", conditions, fill = conditionsColors)
+
+# as prop.test counts the number of successes, we exchange successes and failure in order to count the number of error (like a success)
+dataError4Analysis$Error = ifelse(dataError4Analysis$Error == 1, 0, 1)
+
+table(dataError4Analysis)
+
+# impact of size
+dataS <- subset(dataError4Analysis, select = c("Error", "Size"))
+table(dataS)
+prop.test(t(table(dataS)))
+
+# impact of ID
+dataID <- subset(dataError4Analysis, select = c("Error", "ID"))
+table(dataID)
+prop.test(t(table(dataID)))
+
+# Impact of size for ID = 2
+data2 <- dataError4Analysis[which(dataError4Analysis$ID == 2),]
+data2 <- subset(data2, select = c("Error", "Size"))
+table(data2)
+prop.test(t(table(data2)))
+
+data2_small <- data2[which(data2$Size == 2),]
+data2_medium <- data2[which(data2$Size == 4),]
+data2_large <- data2[which(data2$Size == 8),]
+prop.test(c(nrow(data2_small[which(data2_small$Error == 1),]), nrow(data2_medium[which(data2_medium$Error == 1),])), 
+          c(nrow(data2_small), nrow(data2_medium)))
+prop.test(c(nrow(data2_large[which(data2_large$Error == 1),]), nrow(data2_medium[which(data2_small$Error == 1),])), 
+          c(nrow(data2_large), nrow(data2_medium)))
+
+# Impact of size for ID = 3
+data3 <- dataError4Analysis[which(dataError4Analysis$ID == 3),]
+data3 <- subset(data3, select = c("Error", "Size"))
+table(data3)
+prop.test(t(table(data3)))
+
+data3_small <- data3[which(data3$Size == 2),]
+data3_medium <- data3[which(data3$Size == 4),]
+data3_large <- data3[which(data3$Size == 8),]
+prop.test(c(nrow(data3_small[which(data3_small$Error == 1),]), nrow(data3_medium[which(data3_medium$Error == 1),])), 
+          c(nrow(data3_small), nrow(data3_medium)))
+prop.test(c(nrow(data3_large[which(data3_large$Error == 1),]), nrow(data3_medium[which(data3_medium$Error == 1),])), 
+          c(nrow(data3_large), nrow(data3_medium)))
+
+# Impact of size for ID = 4
+data4 <- dataError4Analysis[which(dataError4Analysis$ID == 4),]
+data4 <- subset(data4, select = c("Error", "Size"))
+table(data4)
+prop.test(t(table(data4)))
+
+data4_small <- data4[which(data4$Size == 2),]
+data4_medium <- data4[which(data4$Size == 4),]
+data4_large <- data4[which(data4$Size == 8),]
+prop.test(c(nrow(data4_small[which(data4_small$Error == 1),]), nrow(data4_medium[which(data4_medium$Error == 1),])), 
+          c(nrow(data4_small), nrow(data4_medium)))
+prop.test(c(nrow(data4_large[which(data4_large$Error == 1),]), nrow(data4_medium[which(data4_medium$Error == 1),])), 
+          c(nrow(data4_large), nrow(data4_medium)))
+
+# Impact of size for ID = 5
+data5 <- dataError4Analysis[which(dataError4Analysis$ID == 5),]
+data5 <- subset(data5, select = c("Error", "Size"))
+table(data5)
+prop.test(t(table(data5)))
+
+data5_small <- data5[which(data5$Size == 2),]
+data5_medium <- data5[which(data5$Size == 4),]
+data5_large <- data5[which(data5$Size == 8),]
+prop.test(c(nrow(data5_small[which(data5_small$Error == 1),]), nrow(data5_medium[which(data5_medium$Error == 1),])), 
+          c(nrow(data5_small), nrow(data5_medium)))
+prop.test(c(nrow(data5_large[which(data5_large$Error == 1),]), nrow(data5_medium[which(data5_medium$Error == 1),])), 
+          c(nrow(data5_large), nrow(data5_medium)))
+```
+

@@ -1,0 +1,17 @@
+Name;Sex;Age;Length/Orientation;Grasp;Repetition;Position;Overshoot;MovementTime - 2016-05-31T16:08:01.994+02:00
+Van Bao;Male;24;large-vertical;1H;1;D;0;1.58
+Van Bao;Male;24;large-vertical;1H;2;U;0;1.319
+Van Bao;Male;24;large-vertical;1H;3;D;0;1.698
+Van Bao;Male;24;large-vertical;1H;4;U;0;1.295
+Van Bao;Male;24;large-vertical;1H;5;D;0;1.305
+Van Bao;Male;24;large-vertical;1H;6;U;1;2.894
+Van Bao;Male;24;large-vertical;1H;7;D;0;1.321
+Van Bao;Male;24;large-vertical;1H;8;U;0;1.087
+Van Bao;Male;24;large-vertical;1H;9;D;0;1.297
+Van Bao;Male;24;large-vertical;1H;10;U;0;1.417
+Van Bao;Male;24;large-vertical;1H;11;D;0;0.992
+Van Bao;Male;24;large-vertical;1H;12;U;0;1.323
+Van Bao;Male;24;large-vertical;1H;13;D;0;1.79
+Van Bao;Male;24;large-vertical;1H;14;U;0;1.696
+Van Bao;Male;24;large-vertical;1H;15;D;0;2.002
+Van Bao;Male;24;large-vertical;1H;16;U;0;1.603

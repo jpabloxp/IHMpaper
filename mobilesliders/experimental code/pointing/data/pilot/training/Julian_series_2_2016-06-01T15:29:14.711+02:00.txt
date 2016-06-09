@@ -1,0 +1,17 @@
+Name;Sex;Age;Length/Orientation;Grasp;Repetition;Position;Overshoot;MovementTime - 2016-06-01T15:29:14.711+02:00
+Julian;Male;24;verylarge-vertical;1H;1;D;0;2.706
+Julian;Male;24;verylarge-vertical;1H;2;U;0;2.282
+Julian;Male;24;verylarge-vertical;1H;3;D;0;2.312
+Julian;Male;24;verylarge-vertical;1H;4;U;0;2.002
+Julian;Male;24;verylarge-vertical;1H;5;D;0;2.717
+Julian;Male;24;verylarge-vertical;1H;6;U;0;1.601
+Julian;Male;24;verylarge-vertical;1H;7;D;0;1.883
+Julian;Male;24;verylarge-vertical;1H;8;U;0;2.004
+Julian;Male;24;verylarge-vertical;1H;9;D;0;1.204
+Julian;Male;24;verylarge-vertical;1H;10;U;0;1.505
+Julian;Male;24;verylarge-vertical;1H;11;D;0;1.206
+Julian;Male;24;verylarge-vertical;1H;12;U;0;1.601
+Julian;Male;24;verylarge-vertical;1H;13;D;0;1.111
+Julian;Male;24;verylarge-vertical;1H;14;U;0;1.088
+Julian;Male;24;verylarge-vertical;1H;15;D;0;1.416
+Julian;Male;24;verylarge-vertical;1H;16;U;0;1.486
